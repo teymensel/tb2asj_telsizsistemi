@@ -27,7 +27,7 @@ from ui.widgets.vox_control import VOXControlWidget
 
 class MainWindow(QMainWindow):
     """Ana uygulama penceresi"""
-    APP_VERSION = "1.0.1"
+    APP_VERSION = "1.0.2"
     
     def __init__(self):
         super().__init__()
@@ -44,7 +44,7 @@ class MainWindow(QMainWindow):
         # Servisler
         self.weather_service = WeatherService()
         self.earthquake_service = EarthquakeService()
-        self.notification_manager = NotificationManager(self)
+        self.notification_manager = NotificationManager(self.radio_connection, self.vox_controller)
         self.update_service = UpdateService(self.APP_VERSION) # EKLENDİ
         
         # System tray
@@ -278,6 +278,7 @@ class MainWindow(QMainWindow):
         enabled = settings.get('earthquake.enabled', True)
         city_filter = settings.get('earthquake.city_filter', '')
         self.earthquake_service.set_city_filter(city_filter)
+        self.earthquake_service.set_check_interval(int(settings.get('earthquake.interval', 60)))
         
         if enabled:
              self.earthquake_service.start_monitoring()

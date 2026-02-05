@@ -253,10 +253,16 @@ class SettingsDialog(QDialog):
         self.eq_provider_combo = QComboBox()
         self.eq_provider_combo.addItems(["Kandilli", "AFAD", "Tümü (Kandilli+AFAD)"])
         
+        self.earthquake_interval = QSpinBox()
+        self.earthquake_interval.setRange(10, 3600)
+        self.earthquake_interval.setValue(60)
+        self.earthquake_interval.setSuffix(" saniye")
+        
         earthquake_layout.addRow(self.earthquake_enabled)
         earthquake_layout.addRow("Veri Kaynağı:", self.eq_provider_combo)
         earthquake_layout.addRow("Minimum Büyüklük:", self.earthquake_min_mag)
         earthquake_layout.addRow("Bölge Filtresi (Opsiyonel):", self.eq_city_filter)
+        earthquake_layout.addRow("Sorgulama Aralığı:", self.earthquake_interval)
         
         # Test Butonu
         test_eq_btn = QPushButton("🔊 Test Uyarısı")
@@ -478,6 +484,7 @@ class SettingsDialog(QDialog):
         self.earthquake_enabled.setChecked(settings.get('earthquake.enabled', True))
         self.earthquake_min_mag.setValue(float(settings.get('earthquake.min_magnitude', 4.0)))
         self.eq_city_filter.setText(settings.get('earthquake.city_filter', ''))
+        self.earthquake_interval.setValue(int(settings.get('earthquake.interval', 60)))
         
         provider = settings.get('earthquake.provider', "Kandilli")
         idx = self.eq_provider_combo.findText(provider)
@@ -524,6 +531,7 @@ class SettingsDialog(QDialog):
         settings.set('earthquake.min_magnitude', self.earthquake_min_mag.value())
         settings.set('earthquake.city_filter', self.eq_city_filter.text())
         settings.set('earthquake.provider', self.eq_provider_combo.currentText())
+        settings.set('earthquake.interval', self.earthquake_interval.value())
         
         settings.set('general.auto_start', self.auto_start.isChecked())
         settings.set('general.hourly_announce', self.hourly_announce.isChecked())

@@ -57,6 +57,12 @@ class EarthquakeService(QObject):
         """Minimum deprem büyüklüğünü ayarla (Bildirim için)"""
         self.min_magnitude = max(0.0, magnitude)
         
+    def set_check_interval(self, seconds: int) -> None:
+        """Sorgulama aralığını saniye cinsinden ayarla"""
+        self.check_interval = max(10, seconds)  # Minimum 10 saniye
+        if self.check_timer.isActive():
+            self.check_timer.start(self.check_interval * 1000)
+            
     def set_city_filter(self, city: str) -> None:
         """Şehir filtresi ayarla (Opsiyonel)"""
         self.city_filter = city.lower().strip() if city else None
