@@ -44,7 +44,7 @@ Modern, hafif ve profesyonel telsiz yönetim masaüstü uygulaması.
 
 1. **Projeyi klonlayın**:
    ```bash
-   git clone <repo-url>
+   git clone https://github.com/teymensel/tb2asj_telsizsistemi.git
    cd tb2asj_telsizsistemi
    ```
 
@@ -129,6 +129,8 @@ tb2asj_telsizsistemi/
         ├── weather_widget.py
         ├── signal_meter.py
         └── vox_control.py
+├── TB2ASJ                  # Linux Başlatıcı (Uzantısız)
+├── TB2ASJ_Linux_Source.tar.gz # Linux Kaynak Paketi
 ```
 
 ## 🔧 Sorun Giderme
@@ -163,7 +165,9 @@ Katkılarınızı bekliyoruz! Pull request göndermekten çekinmeyin.
 
 ## 📞 Destek
 
-Sorun bildirmek veya öneride bulunmak için: TB2ASJ
+Sorun bildirmek, öneride bulunmak veya destek almak için: 
+- **Geliştirici:** TB2ASJ
+- **Web:** [teymensel.com](https://teymensel.com)
 
 ---
 
