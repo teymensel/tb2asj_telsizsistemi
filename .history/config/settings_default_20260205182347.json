@@ -1,0 +1,36 @@
+{
+  "radio": {
+    "port": "",
+    "baudrate": 9600,
+    "databits": 8,
+    "parity": "N",
+    "stopbits": 1,
+    "connection_type": "COM"
+  },
+  "audio": {
+    "input_device": null,
+    "output_device": null,
+    "mic_level": 50,
+    "speaker_level": 75,
+    "vox_enabled": true,
+    "vox_threshold": 30
+  },
+  "weather": {
+    "api_key": "",
+    "city": "Istanbul",
+    "country": "TR",
+    "update_interval": 3600,
+    "auto_announce": true
+  },
+  "earthquake": {
+    "enabled": true,
+    "min_magnitude": 4.0,
+    "check_interval": 60
+  },
+  "general": {
+    "auto_start": false,
+    "minimize_to_tray": true,
+    "theme": "dark",
+    "language": "tr"
+  }
+}
