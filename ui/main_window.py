@@ -4,10 +4,11 @@ Ana pencere - TB2ASJ Telsiz Yönetim Sistemi
 from PyQt6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
                              QLabel, QPushButton, QGridLayout, QMessageBox,
                              QSystemTrayIcon, QMenu, QStyle)
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QIcon, QAction
+from PyQt6.QtCore import Qt, QUrl
+from PyQt6.QtGui import QIcon, QAction, QDesktopServices
 from datetime import datetime
 from config import settings
+from services.update_service import UpdateService # EKLENDI
 from radio.connection import RadioConnection
 from radio.audio_manager import AudioManager
 from radio.vox_controller import VOXController
@@ -26,10 +27,11 @@ from ui.widgets.vox_control import VOXControlWidget
 
 class MainWindow(QMainWindow):
     """Ana uygulama penceresi"""
+    APP_VERSION = "1.0.1"
     
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("TB2ASJ - Telsiz Yönetim Sistemi")
+        self.setWindowTitle(f"TB2ASJ - Telsiz Yönetim Sistemi v{self.APP_VERSION}")
         self.setMinimumSize(900, 700)
         
         # İlk açılışta hava durumu anonsunu engellemek için bayrak
@@ -39,11 +41,11 @@ class MainWindow(QMainWindow):
         self.radio_connection = RadioConnection()
         self.audio_manager = AudioManager()
         self.vox_controller = VOXController(self.audio_manager, self.radio_connection)
+        # Servisler
         self.weather_service = WeatherService()
         self.earthquake_service = EarthquakeService()
-        self.notification_manager = NotificationManager(
-            self.radio_connection, self.vox_controller
-        )
+        self.notification_manager = NotificationManager(self)
+        self.update_service = UpdateService(self.APP_VERSION) # EKLENDİ
         
         # System tray
         self.tray_icon = None
@@ -55,6 +57,9 @@ class MainWindow(QMainWindow):
         
         # Tema uygula
         self.apply_theme()
+        
+        # Güncelleme kontrolü
+        self.check_for_updates()
         
         # Saat anons ayarını yükle
         self.clock_widget.announce_enabled = settings.get('general.hourly_announce', False)
@@ -566,6 +571,34 @@ class MainWindow(QMainWindow):
             # Bizim burada yapmamız gereken settings'den okuyup canlı nesneleri güncellemek.
             # load_settings() metodumuz var, onu çağırmak daha mantıklı.
             self.load_settings()
+
+    def check_for_updates(self):
+        """Güncelleme kontrolünü başlat"""
+        self.update_thread = self.update_service.check_for_updates()
+        self.update_thread.update_available.connect(self.on_update_found)
+        self.update_thread.error.connect(self.on_update_error)
+        self.update_thread.start()
+
+    def on_update_found(self, info: dict):
+        """Yeni sürüm bulunduğunda"""
+        version = info.get('version')
+        notes = info.get('notes')
+        url = info.get('url')
+        
+        reply = QMessageBox.question(
+            self,
+            "Yeni Güncelleme Mevcut",
+            f"Sürüm {version} yayınlandı!\n\nDeğişiklikler:\n{notes}\n\nŞimdi indirmek istiyor musunuz?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.Yes
+        )
+        
+        if reply == QMessageBox.StandardButton.Yes:
+            QDesktopServices.openUrl(QUrl(url))
+
+    def on_update_error(self, message: str):
+        """Güncelleme kontrolünde hata oluşursa (sessizce logla)"""
+        print(f"[GÜNCELLEME] Hata: {message}")
 
     def closeEvent(self, event):
         """Pencere kapatılırken"""

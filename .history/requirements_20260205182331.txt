@@ -1,6 +1,0 @@
-PyQt6==6.6.1
-pyserial==3.5
-PyAudio==0.2.14
-sounddevice==0.4.6
-requests==2.31.0
-python-dotenv==1.0.0
