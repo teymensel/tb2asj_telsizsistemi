@@ -291,12 +291,32 @@ class SettingsDialog(QDialog):
         
         self.hourly_announce = QCheckBox("Saat ve yarım saatlerde sesli anons yap")
         form_layout.addRow("", self.hourly_announce)
+
+        self.roger_beep_enabled = QCheckBox("Roger Beep (Anons Öncesi Sinyal)")
+        self.roger_beep_enabled.setToolTip("Anonslardan önce kısa bir bip sesi çalar.")
+        form_layout.addRow("", self.roger_beep_enabled)
         
         self.theme_combo = QComboBox()
         self.theme_combo.addItems(["Koyu Tema", "Açık Tema"])
         form_layout.addRow("Tema:", self.theme_combo)
         
         layout.addLayout(form_layout)
+        
+        # --- Batarya Uyarı Ayarları ---
+        battery_group = QGroupBox("Güç ve Batarya")
+        battery_layout = QFormLayout()
+        
+        self.battery_warning_enabled = QCheckBox("Düşük Pil Uyarısı Yap")
+        self.battery_warning_enabled.setChecked(True)
+        
+        self.battery_warning_msg = QLineEdit()
+        self.battery_warning_msg.setPlaceholderText("Uyarı mesajı...")
+        self.battery_warning_msg.setText("Dikkat, batarya seviyesi kritik. Sistem kapanabilir.")
+        
+        battery_layout.addRow("", self.battery_warning_enabled)
+        battery_layout.addRow("Mesaj:", self.battery_warning_msg)
+        battery_group.setLayout(battery_layout)
+        layout.addWidget(battery_group)
         
         # --- Şablon Ayarı ---
         template_group = QGroupBox("Anons Şablonu")
@@ -493,6 +513,10 @@ class SettingsDialog(QDialog):
         
         self.auto_start.setChecked(settings.get('general.auto_start', False))
         self.hourly_announce.setChecked(settings.get('general.hourly_announce', False))
+        self.roger_beep_enabled.setChecked(settings.get('general.roger_beep', False))
+        
+        self.battery_warning_enabled.setChecked(settings.get('power.warning_enabled', True))
+        self.battery_warning_msg.setText(settings.get('power.warning_message', "Dikkat, batarya seviyesi kritik. Sistem kapanabilir."))
         
         default_template = "Saat $saat. $sehir hava durumu: $havadurumu."
         self.announce_template_input.setText(settings.get('general.announce_template', default_template))
@@ -536,10 +560,12 @@ class SettingsDialog(QDialog):
         settings.set('general.auto_start', self.auto_start.isChecked())
         settings.set('general.hourly_announce', self.hourly_announce.isChecked())
         settings.set('general.theme', 'dark' if self.theme_combo.currentText() == "Koyu Tema" else 'light')
+        settings.set('general.roger_beep', self.roger_beep_enabled.isChecked())
         settings.set('general.announce_template', self.announce_template_input.toPlainText())
         
-        # Sync forcing
-        settings.sync()
+        # Batarya
+        settings.set('power.warning_enabled', self.battery_warning_enabled.isChecked())
+        settings.set('power.warning_message', self.battery_warning_msg.text())
         
         self.accept()
 

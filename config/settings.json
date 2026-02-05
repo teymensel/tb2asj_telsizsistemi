@@ -16,7 +16,7 @@
     "vox_threshold": 0
   },
   "weather": {
-    "api_key": "8fc75ab59eae0db7f90d0b289cba63a9",
+    "api_key": "",
     "city": "Istanbul",
     "country": "TR",
     "update_interval": 3600,
@@ -28,18 +28,25 @@
     "min_magnitude": 0.0,
     "check_interval": 60,
     "city_filter": "",
-    "provider": "Tümü (Kandilli+AFAD)"
+    "provider": "Tümü (Kandilli+AFAD)",
+    "interval": 60
   },
   "general": {
     "auto_start": false,
     "minimize_to_tray": true,
     "theme": "dark",
     "language": "tr",
-    "hourly_announce": true
+    "hourly_announce": true,
+    "roger_beep": true,
+    "announce_template": "Saat $saat. $sehir hava durumu: $havadurumu."
   },
   "notification": {
     "voice_id": "tr-TR-EmelNeural",
     "test_message": "UYARI UYARI TEST BİLDİRİMİ",
     "provider": "Edge TTS (Microsoft)"
+  },
+  "power": {
+    "warning_enabled": true,
+    "warning_message": "Dikkat, batarya seviyesi kritik. Sistem kapanabilir."
   }
 }

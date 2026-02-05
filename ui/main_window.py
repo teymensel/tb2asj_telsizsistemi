@@ -8,7 +8,8 @@ from PyQt6.QtCore import Qt, QUrl
 from PyQt6.QtGui import QIcon, QAction, QDesktopServices
 from datetime import datetime
 from config import settings
-from services.update_service import UpdateService # EKLENDI
+from services.update_service import UpdateService
+from services.battery_service import BatteryService # EKLENDI
 from radio.connection import RadioConnection
 from radio.audio_manager import AudioManager
 from radio.vox_controller import VOXController
@@ -23,11 +24,12 @@ from ui.widgets.earthquake_widget import EarthquakeWidget # EKLENDİ
 from ui.widgets.log_window import LogWindow # EKLENDİ
 from ui.widgets.signal_meter import SignalMeterWidget
 from ui.widgets.vox_control import VOXControlWidget
+from ui.widgets.battery_widget import BatteryWidget # EKLENDI
 
 
 class MainWindow(QMainWindow):
     """Ana uygulama penceresi"""
-    APP_VERSION = "1.0.2"
+    APP_VERSION = "1.0.3"
     
     def __init__(self):
         super().__init__()
@@ -45,7 +47,8 @@ class MainWindow(QMainWindow):
         self.weather_service = WeatherService()
         self.earthquake_service = EarthquakeService()
         self.notification_manager = NotificationManager(self.radio_connection, self.vox_controller)
-        self.update_service = UpdateService(self.APP_VERSION) # EKLENDİ
+        self.update_service = UpdateService(self.APP_VERSION)
+        self.battery_service = BatteryService() # EKLENDİ
         
         # System tray
         self.tray_icon = None
@@ -115,6 +118,11 @@ class MainWindow(QMainWindow):
         btn_read_weather = QPushButton("🌤️ Hava Durumu Oku")
         btn_read_weather.clicked.connect(self.read_current_weather)
         header_actions.addWidget(btn_read_weather)
+        
+        # Batarya Widget'ını header'a ekle
+        header_actions.addStretch()
+        self.battery_widget = BatteryWidget(self.battery_service)
+        header_actions.addWidget(self.battery_widget)
         
         content_layout.addLayout(header_actions)
         
@@ -221,6 +229,9 @@ class MainWindow(QMainWindow):
         # Deprem
         self.earthquake_service.earthquake_detected.connect(self.on_earthquake_detected)
         self.earthquake_service.error_occurred.connect(self.on_error)
+
+        # Batarya Sinyalleri
+        self.battery_service.warning_threshold_reached.connect(self.on_battery_warning)
     
     def on_ptt_pressed(self):
         """PTT tuşuna basıldı"""
@@ -253,6 +264,13 @@ class MainWindow(QMainWindow):
         test_msg = settings.get('notification.test_message')
         if test_msg:
             self.notification_manager.set_test_message(test_msg)
+
+        # Roger Beep Ayarı
+        self.notification_manager.roger_beep_enabled = settings.get('general.roger_beep', False)
+
+        # Batarya Ayarları
+        # (Servis zaten kendi içinde periyodik kontrol yapıyor, 
+        # biz sadece sesli uyarının açık olup olmadığını kontrol edeceğiz)
 
         # VOX widget ayarları
         self.vox_control.set_vox_enabled(settings.get('audio.vox_enabled', True))
@@ -572,6 +590,14 @@ class MainWindow(QMainWindow):
             # Bizim burada yapmamız gereken settings'den okuyup canlı nesneleri güncellemek.
             # load_settings() metodumuz var, onu çağırmak daha mantıklı.
             self.load_settings()
+
+    def on_battery_warning(self, message: str):
+        """Batarya seviyesi kritik olduğunda sesli uyarı yap"""
+        if settings.get('power.warning_enabled', True):
+            # Ayarlardaki mesajı kullan veya gelen mesajı (varsayılan) kullan
+            custom_msg = settings.get('power.warning_message', "")
+            display_msg = custom_msg if custom_msg else message
+            self.notification_manager.send_notification(display_msg)
 
     def check_for_updates(self):
         """Güncelleme kontrolünü başlat"""

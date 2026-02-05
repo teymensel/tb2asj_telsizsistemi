@@ -40,6 +40,11 @@ class NotificationManager(QObject):
         if not os.path.exists(self.temp_dir):
             os.makedirs(self.temp_dir)
             
+        # Roger Beep Ayarı
+        self.roger_beep_enabled = False
+        self.roger_beep_path = os.path.join(self.temp_dir, 'roger_beep.wav')
+        self._generate_roger_beep() # Dosyayı oluştur
+            
     def get_providers_list(self) -> List[str]:
         return [p.get_name() for p in self.providers]
         
@@ -59,6 +64,32 @@ class NotificationManager(QObject):
     def set_test_message(self, message: str):
         if message:
             self.test_message = message
+
+    def _generate_roger_beep(self):
+        """Basit bir sinüs dalgası beep sesi oluştur (1000Hz, 200ms)"""
+        if os.path.exists(self.roger_beep_path):
+            return
+            
+        import wave
+        import math
+        import struct
+        
+        sample_rate = 44100
+        duration = 0.2 # saniye
+        frequency = 1000.0 # Hz
+        
+        try:
+            with wave.open(self.roger_beep_path, 'w') as obj:
+                obj.setnchannels(1) # mono
+                obj.setsampwidth(2) # 2 byte (16 bit)
+                obj.setframerate(sample_rate)
+                
+                for i in range(int(duration * sample_rate)):
+                    value = int(32767.0 * math.sin(2.0 * math.pi * frequency * i / sample_rate))
+                    data = struct.pack('<h', value)
+                    obj.writeframesraw(data)
+        except Exception as e:
+            print(f"Roger beep oluşturulamadı: {e}")
     
     def _speak_thread(self, message: str):
         """TTS işlemini ayrı thread'de yap"""
@@ -76,7 +107,15 @@ class NotificationManager(QObject):
                     # PTT zaten açık, sesi gönder
                     print(f"Ses çalınıyor: {filepath}")
                     
-                    # Pygame mixer load play
+                    # 2.1 Roger Beep (Önce)
+                    if self.roger_beep_enabled and os.path.exists(self.roger_beep_path):
+                         pygame.mixer.music.load(self.roger_beep_path)
+                         pygame.mixer.music.play()
+                         while pygame.mixer.music.get_busy():
+                            pygame.time.Clock().tick(10)
+                         time.sleep(0.1) # Kısa bekleme
+                    
+                    # 2.2 Ana Mesaj
                     pygame.mixer.music.load(filepath)
                     pygame.mixer.music.play()
                     
