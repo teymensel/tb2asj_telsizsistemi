@@ -40,6 +40,7 @@ ENV/
 .vscode/
 
 # Project Specific
+.history/
 TB2ASJ_Linux_Source.tar.gz
 *.log
 temp_audio/
